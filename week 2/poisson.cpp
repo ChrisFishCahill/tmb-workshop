@@ -1,10 +1,8 @@
-/*    Generalized Linear Model 
+/*    Generalized Linear Model for Gorbachev's Holy Goose  
 *     y_i ~ Poisson(lambda_i)
 *     E(y_i) = lambda_i
 *     Var(y_i) = lambda_i 
 *     log(lambda_i) = Beta0 + Beta1*x1 + Beta2*x2 
-*     Beta1 is some measure of habitat quality 
-*     Beta2 is temperature
 *     Cahill Oct 23 2019
 */
 #include <TMB.hpp>
