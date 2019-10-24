@@ -39,7 +39,6 @@ AICc = AIC + ( 2*length(opt_tmb$par)^2 + 2*length(opt_tmb$par) ) / (nrow(data) -
 
 AIC  
 AICc 
-opt = TMBhelper::Optimize(obj=Obj, getsd=T, newtonsteps=1)
 
 #-------------------------------
 #Simulation experiment in R
