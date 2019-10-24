@@ -34,11 +34,12 @@ if( any(abs(final_gradient)>0.0001) | SD$pdHess==FALSE ) stop("Not (converged) t
 
 opt_tmb$objective #34.28401 = nll
 
-AIC = 2*length(opt_tmb$par) - 2*opt_tmb$objective #2*n - 2*nll
+AIC = 2*length(opt_tmb$par) + 2*opt_tmb$objective #2*n + 2*nll
 AICc = AIC + ( 2*length(opt_tmb$par)^2 + 2*length(opt_tmb$par) ) / (nrow(data) - length(opt_tmb$par) - 1)
 
-AIC  #-60.57
-AICc #-56.12
+AIC  
+AICc 
+opt = TMBhelper::Optimize(obj=Obj, getsd=T, newtonsteps=1)
 
 #-------------------------------
 #Simulation experiment in R
