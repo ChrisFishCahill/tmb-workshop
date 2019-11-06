@@ -2,6 +2,7 @@
 
 setwd( "C:/Users/Chris Cahill/Documents/GitHub/tmb-workshop/Week 3" )
 #if you don't have the tmb helper: 
+#install.packages('TMB', type = 'source')
 #devtools::install_github("kaskr/TMB_contrib_R/TMBhelper")
 library(ggplot2)
 library(lme4)
