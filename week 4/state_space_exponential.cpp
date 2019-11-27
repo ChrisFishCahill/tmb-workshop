@@ -22,6 +22,7 @@ Type objective_function<Type>::operator() ()
   
   // Parameters
   PARAMETER( logB0 );          //initial biomass measurement
+
   PARAMETER( log_sigmaP );     //process sd
   PARAMETER( log_sigmaO );     //measurement sd 
   PARAMETER( mu_lambda); 
@@ -35,7 +36,7 @@ Type objective_function<Type>::operator() ()
   
   vector<Type> biomass_t(Nyears); //create a vector to store biomass values
   biomass_t(0) = exp(logB0); //condition on B0
-  
+
   //sweep downstream through time-series | B0, mu_lambda
   for( int t=1; t<Nyears; t++ ){
     jnll -= dnorm( lambda_t(t), lambda_t(t-1), exp(log_sigmaP), true ); 
