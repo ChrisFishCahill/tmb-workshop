@@ -106,6 +106,7 @@ polygon(x = c(1:Nyears, Nyears:1), y = c(plot.data$tmb_lambda_lower, plot.data$t
         col = "gray90", border = "gray90") #confidence intervals tmb
 lines(ParHat$lambda_t)
 lines(plot.data$true_lambda, col="darkorange")
+abline(h=1.0, col="blue", lty=2)
 
 #---------------------------------------------------------
 #Do it again but predict left out years this time
