@@ -62,6 +62,7 @@ Opt = fit_tmb( obj=Obj, newtonsteps=1 )
 Opt
 
 SD = sdreport( Obj )
+#SEHat  = as.list( Opt$SD, "Std. Error" )
 
 #Did it converge
 final_gradient = Obj$gr( Opt$par )

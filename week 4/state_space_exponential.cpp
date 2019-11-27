@@ -22,7 +22,6 @@ Type objective_function<Type>::operator() ()
   
   // Parameters
   PARAMETER( logB0 );          //initial biomass measurement
-
   PARAMETER( log_sigmaP );     //process sd
   PARAMETER( log_sigmaO );     //measurement sd 
   PARAMETER( mu_lambda); 
@@ -30,16 +29,14 @@ Type objective_function<Type>::operator() ()
 
   // Objective function
   Type jnll = 0;
-  
-  // Probability of random coefficients--lambda_t --> vector of latent states
-  jnll -= dnorm( lambda_t(0), mu_lambda, exp(log_sigmaP), true ); //condition on the mu_lambda estimate
-  
+
   vector<Type> biomass_t(Nyears); //create a vector to store biomass values
   biomass_t(0) = exp(logB0); //condition on B0
-
+  // Probability of random coefficients--lambda_t --> vector of latent states
   //sweep downstream through time-series | B0, mu_lambda
   for( int t=1; t<Nyears; t++ ){
-    jnll -= dnorm( lambda_t(t), lambda_t(t-1), exp(log_sigmaP), true ); 
+    jnll -= dnorm( lambda_t(t), mu_lambda, exp(log_sigmaP), true ); 
+    //jnll -= dnorm( lambda_t(t), lambda_t(t-1), exp(log_sigmaP), true ); 
     biomass_t(t) = lambda_t(t-1)*biomass_t(t-1); 
   }
   
