@@ -1,3 +1,6 @@
+#Time-series / state-space models in TMB
+#Cahill 27 Nov 2019 
+rm(list=ls(all=TRUE))
 #Simulate some fake data, analyze it, make lots of plots
 require(TMB)
 require(ggplot2)
@@ -40,11 +43,11 @@ compile( paste0(Version,".cpp") )
 
 # Build inputs
 Data = list( "Nyears"=Nyears, "Y_obs_t"=y_obs )
-Parameters = list( "B0"=0, "log_sigmaP"=1, "log_sigmaO"=1, "mu_lambda"=1, "lambda_t"=rep(0,Nyears) )
+Parameters = list( "logB0"=0, "log_sigmaP"=1, "log_sigmaO"=1, "mu_lambda"=1, "lambda_t"=rep(0,Nyears) )
 Random = c("lambda_t")
 
 Use_REML = TRUE
-if( Use_REML==TRUE ) Random = union( Random, c("B0","mu_lambda") )
+if( Use_REML==TRUE ) Random = union( Random, c("logB0","mu_lambda") )
 
 # Build object
 dyn.load( dynlib("state_space_exponential") )
@@ -81,6 +84,8 @@ plot.data = data.frame(true_biomass=B, true_lambda=c(mu_lambda, lambda_t),
                        tmb_lambda_upper = ParHat$lambda_t + SD$sd[names(SD$value)=="lambda_t"]*1.96
                        )
 plot.data
+png( file="results.png", width=8, height=5, res=800, units="in" )
+par( mar=c(3,3,1,1), mgp=c(2,0.5,0), tck=-0.02 )
 
 plot(0, 0, ylim = c(min(plot.data$tmb_lower), max(plot.data$tmb_upper)), 
      xlim = c(0.5, Nyears), ylab = "Population
@@ -97,16 +102,21 @@ legend(x = 30, y = 45, legend = c("True", "Observed", "Estimated (TMB)",
                                                        "Estimated (Gam)"),
        lty = c(1, 1, 1), lwd = c(2, 2, 2), col = c("darkorange","black", "blue", "red"),
        bty = "n", cex = 1)
+dev.off()
 
 #Here's a thing gam cannot give you (to my knowledge):
+png( file="lambda.png", width=8, height=5, res=800, units="in" )
+par( mar=c(3,3,1,1), mgp=c(2,0.5,0), tck=-0.02 )
+
 plot(0, 0, ylim = c(min(plot.data$tmb_lambda_lower), max(plot.data$tmb_lambda_upper)), 
      xlim = c(0.5, Nyears), ylab = "Lambda", xlab = "Year", las = 1, col = "black", type = "l", lwd = 2,
      axes = TRUE)
 polygon(x = c(1:Nyears, Nyears:1), y = c(plot.data$tmb_lambda_lower, plot.data$tmb_lambda_upper[Nyears:1]),
         col = "gray90", border = "gray90") #confidence intervals tmb
 lines(ParHat$lambda_t)
-lines(plot.data$true_lambda, col="darkorange")
+lines(plot.data$true_lambda, pch=16, type="b", col="darkorange")
 abline(h=1.0, col="blue", lty=2)
+dev.off()
 
 #---------------------------------------------------------
 #Do it again but predict left out years this time
@@ -114,7 +124,7 @@ dyn.unload( dynlib("state_space_exponential") )
 
 Data = list( "Nyears"=Nyears, "Y_obs_t"=y_obs )
 Data$Y_obs_t[47:50]=NA
-Parameters = list( "B0"=20, "log_sigmaP"=1, "log_sigmaO"=1, "mu_lambda"=1, "lambda_t"=rep(0,Nyears) )
+Parameters = list( "logB0"=20, "log_sigmaP"=1, "log_sigmaO"=1, "mu_lambda"=1, "lambda_t"=rep(0,Nyears) )
 
 compile( paste0(Version,".cpp") )
 dyn.load( dynlib("state_space_exponential") )
@@ -131,6 +141,10 @@ Opt
 SD = sdreport( Obj )
 SD
 
+#Did it converge
+final_gradient = Obj$gr( Opt$par )
+if( any(abs(final_gradient)>0.0001) | SD$pdHess==FALSE ) stop("Not converged")
+
 ParHat = as.list( Opt$SD, "Estimate" )
 ParHat$lambda_t
 ParHat[["biomass_t"]] = SD$value[names(SD$value)=="biomass_t"]
@@ -143,9 +157,12 @@ plot.data = data.frame(true_biomass=B, true_lambda=c(mu_lambda, lambda_t),
                        tmb_upper = SD$sd[names(SD$value)=="biomass_t"]*1.96 + ParHat$biomass_t, 
                        tmb_lambda_lower = ParHat$lambda_t - SD$sd[names(SD$value)=="lambda_t"]*1.96,  
                        tmb_lambda_mu = ParHat$lambda_t, 
-                       tmb_lambda_upper = ParHat$lambda_t + SD$sd[names(SD$value)=="lambda_t"]*1.96
+                       tmb_lambda_upper = ParHat$lambda_t + SD$sd[names(SD$value)=="lambda_t"]*1.96, 
+                       year = 1:Nyears
 )
 
+png( file="predict.png", width=8, height=5, res=800, units="in" )
+par( mar=c(3,3,1,1), mgp=c(2,0.5,0), tck=-0.02 )
 
 plot(0, 0, ylim = c(min(plot.data$tmb_lower), max(plot.data$tmb_upper)), 
      xlim = c(0.5, Nyears), ylab = "Population
@@ -156,15 +173,16 @@ polygon(x = c(1:Nyears, Nyears:1), y = c(plot.data$tmb_lower, plot.data$tmb_uppe
 points(plot.data$y_obs, type="p", pch=16, col="black")
 lines(plot.data$true_biomass, type="l", col="darkorange")# truth
 lines(plot.data$tmb_mu, type="l", col="blue") #estimated
+points(plot.data$y_obs[47:50]~plot.data$year[47:50], col="red", pch=16)
 
-legend(x = 30, y = 25, legend = c("True", "Observed", "Estimated (TMB)"),
-       lty = c(1, 1, 1), lwd = c(2, 2, 2), col = c("darkorange","black", "blue"),
+legend(x = 30, y = 25, legend = c("True", "Observed", "Estimated (TMB)", "Predicted"),
+       lty = c(1, 1, 1), lwd = c(2, 2, 2), col = c("darkorange","black", "blue", "red"),
        bty = "n", cex = 1)
 
-#How could we get these confidence intervals to stay positive? 
-#i.e., why did chris do something dumb that he only now realized?
+dev.off()
 #---------------------------------------------------------
 #Redo it with 
 #SigP = SigO = 1; B0 = 20;
 #for a 'fun' learning experience
+#i.e., see Auger-methe et al. 2016
 #---------------------------------------------------------
