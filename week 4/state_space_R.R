@@ -185,7 +185,7 @@ lines(plot.data$true_biomass, type="l", col="darkorange")# truth
 lines(plot.data$tmb_mu, type="l", col="blue") #estimated
 points(plot.data$y_obs[47:50]~plot.data$year[47:50], col="red", pch=16)
 
-legend(x = 30, y = 25, legend = c("True", "Observed", "Estimated (TMB)", "Predicted"),
+legend(x = 30, y = 40, legend = c("True", "Observed", "Estimated (TMB)", "Predicted"),
        lty = c(1, 1, 1), lwd = c(2, 2, 2), col = c("darkorange","black", "blue", "red"),
        bty = "n", cex = 1)
 
