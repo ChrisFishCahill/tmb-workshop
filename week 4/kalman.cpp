@@ -13,7 +13,7 @@ Type objective_function<Type>::operator() ()
   PARAMETER( alpha ); //drift
   PARAMETER_VECTOR( x_t );
   
-  // Objective funcction
+  // Objective 
   Type jnll = 0;
   
   //random effect
