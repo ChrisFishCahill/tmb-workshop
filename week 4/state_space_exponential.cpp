@@ -5,7 +5,7 @@
 *lambda_t==0 = mu_lambda
 *biomass_t==0 = B0 
 *with the exception of b0, biomass_t is derived (or reconstructed if it helps)
-*lambda_t is a latent state where lambda_t ~ N(lambda_t, lambda_mu, sigP)
+*lambda_t is a latent state where lambda_t ~ N(lambda_mu, sigP)
 *Cahill 26 November 2019 
 */ 
 template<class Type>
