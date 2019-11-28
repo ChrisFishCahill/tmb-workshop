@@ -3,7 +3,6 @@
 rm(list=ls(all=TRUE))
 #Simulate some fake data, analyze it, make lots of plots
 require(TMB)
-require(ggplot2)
 require(tidyverse)
 require(TMBhelper)
 require(mgcv)
@@ -44,7 +43,7 @@ compile( paste0(Version,".cpp") )
 
 # Build inputs
 Data = list( "Nyears"=Nyears, "Y_obs_t"=y_obs )
-Parameters = list( "logB0"=0, "log_sigmaP"=1, "log_sigmaO"=1, "mu_lambda"=1, "lambda_t"=rep(0,Nyears) )
+Parameters = list( "logB0"=0, "log_sigmaP"=1, "log_sigmaO"=1, "mu_lambda"=1, "lambda_t"=rep(0,Nyears-1) )
 Random = c("lambda_t")
 
 Use_REML = TRUE
@@ -76,14 +75,14 @@ ParHat[["biomass_t"]] = SD$value[names(SD$value)=="biomass_t"]
 ParHat
 
 #Plot stuff
-plot.data = data.frame(true_biomass=B, true_lambda=c(mu_lambda, lambda_t), 
+plot.data = data.frame(true_biomass=B, true_lambda=c(lambda_t, NA), 
                        y_obs = y_obs, gam_lower = ypred_t$fit - ypred_t$se.fit*1.96,gam_mu = ypred_t$fit,  
                        gam_upper = ypred_t$se.fit*1.96+ypred_t$fit, 
                        tmb_lower = ParHat$biomass_t - SD$sd[names(SD$value)=="biomass_t"]*1.96 , tmb_mu = ParHat$biomass_t,  
                        tmb_upper = SD$sd[names(SD$value)=="biomass_t"]*1.96 + ParHat$biomass_t, 
-                       tmb_lambda_lower = ParHat$lambda_t - SD$sd[names(SD$value)=="lambda_t"]*1.96,  
-                       tmb_lambda_mu = ParHat$lambda_t, 
-                       tmb_lambda_upper = ParHat$lambda_t + SD$sd[names(SD$value)=="lambda_t"]*1.96
+                       tmb_lambda_lower = c(ParHat$lambda_t - SD$sd[names(SD$value)=="lambda_t"]*1.96, NA),  
+                       tmb_lambda_mu = c(ParHat$lambda_t, NA), 
+                       tmb_lambda_upper = c(ParHat$lambda_t + SD$sd[names(SD$value)=="lambda_t"]*1.96, NA)
                        )
 plot.data
 png( file="results.png", width=8, height=5, res=800, units="in" )
@@ -107,13 +106,22 @@ legend(x = 30, y = 45, legend = c("True", "Observed", "Estimated (TMB)",
 dev.off()
 
 #Here's a thing gam cannot give you (to my knowledge):
+
+#Plot stuff
+plot.data = data.frame(true_lambda=lambda_t,
+                       tmb_lambda_lower = ParHat$lambda_t - SD$sd[names(SD$value)=="lambda_t"]*1.96, 
+                       tmb_lambda_mu = ParHat$lambda_t, 
+                       tmb_lambda_upper = ParHat$lambda_t + SD$sd[names(SD$value)=="lambda_t"]*1.96
+)
+
 png( file="lambda.png", width=8, height=5, res=800, units="in" )
 par( mar=c(3,3,1,1), mgp=c(2,0.5,0), tck=-0.02 )
 
-plot(0, 0, ylim = c(min(plot.data$tmb_lambda_lower), max(plot.data$tmb_lambda_upper)), 
-     xlim = c(0.5, Nyears), ylab = "Lambda", xlab = "Year", las = 1, col = "black", type = "l", lwd = 2,
+plot(0, 0, ylim = c(0.5, 1.5), 
+     xlim = c(0.5, Nyears-1), ylab = "Lambda", xlab = "Year", las = 1, col = "black", type = "l", lwd = 2,
      axes = TRUE)
-polygon(x = c(1:Nyears, Nyears:1), y = c(plot.data$tmb_lambda_lower, plot.data$tmb_lambda_upper[Nyears:1]),
+polygon(x = c(1:nrow(plot.data), (nrow(plot.data):1)), 
+        y = c(plot.data$tmb_lambda_lower, plot.data$tmb_lambda_upper[(Nyears-1):1]),
         col = "gray90", border = "gray90") #confidence intervals tmb
 lines(ParHat$lambda_t)
 lines(plot.data$true_lambda, pch=16, type="b", col="darkorange")

@@ -34,10 +34,12 @@ Type objective_function<Type>::operator() ()
   biomass_t(0) = exp(logB0); //condition on B0
   // Probability of random coefficients--lambda_t --> vector of latent states
   //sweep downstream through time-series | B0, mu_lambda
-  for( int t=1; t<Nyears; t++ ){
-    jnll -= dnorm( lambda_t(t), mu_lambda, exp(log_sigmaP), true ); 
+  //jnll = dnorm(lambda_t(0), mu_lambda, exp(log_sigmaP), true); 
+  
+  for( int t=0; t<(Nyears-1); t++ ){
+    jnll -= dnorm( lambda_t(t), mu_lambda, exp(log_sigmaP), true );
     //jnll -= dnorm( lambda_t(t), lambda_t(t-1), exp(log_sigmaP), true ); 
-    biomass_t(t) = lambda_t(t-1)*biomass_t(t-1); 
+    biomass_t(t+1) = lambda_t(t)*biomass_t(t); 
   }
   
   // Probability of data conditional on fixed and random effect values
