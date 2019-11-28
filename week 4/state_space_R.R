@@ -134,7 +134,7 @@ dyn.unload( dynlib("state_space_exponential") )
 
 Data = list( "Nyears"=Nyears, "Y_obs_t"=y_obs )
 Data$Y_obs_t[47:50]=NA
-Parameters = list( "logB0"=20, "log_sigmaP"=1, "log_sigmaO"=1, "mu_lambda"=1, "lambda_t"=rep(0,Nyears) )
+Parameters = list( "logB0"=0, "log_sigmaP"=1, "log_sigmaO"=1, "mu_lambda"=1, "lambda_t"=rep(0,Nyears-1) )
 
 compile( paste0(Version,".cpp") )
 dyn.load( dynlib("state_space_exponential") )
@@ -160,15 +160,15 @@ ParHat$lambda_t
 ParHat[["biomass_t"]] = SD$value[names(SD$value)=="biomass_t"]
 Report = Obj$report()
 
-plot.data = data.frame(true_biomass=B, true_lambda=c(mu_lambda, lambda_t), 
+plot.data = data.frame(true_biomass=B, true_lambda=c(lambda_t, NA), 
                        y_obs = y_obs, gam_lower = ypred_t$fit - ypred_t$se.fit*1.96,gam_mu = ypred_t$fit,  
                        gam_upper = ypred_t$se.fit*1.96+ypred_t$fit, 
                        tmb_lower = ParHat$biomass_t - SD$sd[names(SD$value)=="biomass_t"]*1.96 , tmb_mu = ParHat$biomass_t,  
                        tmb_upper = SD$sd[names(SD$value)=="biomass_t"]*1.96 + ParHat$biomass_t, 
-                       tmb_lambda_lower = ParHat$lambda_t - SD$sd[names(SD$value)=="lambda_t"]*1.96,  
-                       tmb_lambda_mu = ParHat$lambda_t, 
-                       tmb_lambda_upper = ParHat$lambda_t + SD$sd[names(SD$value)=="lambda_t"]*1.96, 
-                       year = 1:Nyears
+                       tmb_lambda_lower = c(ParHat$lambda_t - SD$sd[names(SD$value)=="lambda_t"]*1.96, NA),  
+                       tmb_lambda_mu = c(ParHat$lambda_t, NA), 
+                       tmb_lambda_upper = c(ParHat$lambda_t + SD$sd[names(SD$value)=="lambda_t"]*1.96, NA), 
+                       year=1:Nyears
 )
 
 png( file="predict.png", width=8, height=5, res=800, units="in" )
