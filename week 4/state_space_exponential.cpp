@@ -5,7 +5,7 @@
 *lambda_t==0 = mu_lambda
 *biomass_t==0 = B0 
 *with the exception of b0, biomass_t is derived (or reconstructed if it helps)
-*lambda_t is a latent state where lambda_t ~ N(lambda_t, lambda_t-1, sigP)
+*lambda_t is a latent state where lambda_t ~ N(lambda_t, lambda_mu, sigP)
 *Cahill 26 November 2019 
 */ 
 template<class Type>
@@ -33,12 +33,9 @@ Type objective_function<Type>::operator() ()
   vector<Type> biomass_t(Nyears); //create a vector to store biomass values
   biomass_t(0) = exp(logB0); //condition on B0
   // Probability of random coefficients--lambda_t --> vector of latent states
-  //sweep downstream through time-series | B0, mu_lambda
-  //jnll = dnorm(lambda_t(0), mu_lambda, exp(log_sigmaP), true); 
-  
+  //sweep downstream through time-series | B0, mu_lambda  
   for( int t=0; t<(Nyears-1); t++ ){
     jnll -= dnorm( lambda_t(t), mu_lambda, exp(log_sigmaP), true );
-    //jnll -= dnorm( lambda_t(t), lambda_t(t-1), exp(log_sigmaP), true ); 
     biomass_t(t+1) = lambda_t(t)*biomass_t(t); 
   }
   
