@@ -2,7 +2,6 @@
 /* 
 *y_obs_i ~  Normal(biomass_t, sigmaO)
 *biomass_t = lambda(t-1)*biomass(t-1)
-*lambda_t==0 = mu_lambda
 *biomass_t==0 = B0 
 *with the exception of b0, biomass_t is derived (or reconstructed if it helps)
 *lambda_t is a latent state where lambda_t ~ N(lambda_mu, sigP)
